@@ -1,96 +1,218 @@
-# terraform-aws-module-template
+# AWS Redshift Terraform Module
 
-## Overview
+This Terraform module creates either an Amazon Redshift cluster or Amazon Redshift Serverless resources based on configuration.
 
-SourceFuse AWS Reference Architecture (ARC) Terraform module for managing _________.
+## Features
 
-## Usage
+- Create a standard Amazon Redshift cluster with customizable configuration
+- Create Amazon Redshift Serverless namespace and workgroup
+- Toggle between standard cluster and serverless with a single boolean variable
+- **Automatic password generation** - If no password is provided, a secure random password is generated
+- **AWS Secrets Manager integration** - Option to let AWS manage passwords in Secrets Manager
+- Security group management for both deployment options
+- Subnet group creation for standard Redshift clusters
+- Encryption configuration
+- Snapshot management for standard clusters
+- **Standardized tagging** using the sourcefuse/arc-tags/aws module
 
-To see a full example, check out the [main.tf](./example/main.tf) file in the example folder.  
+## Password Management
+
+This module provides three options for managing the master user password:
+
+1. **Random Password Generation (Recommended)**: Set `master_password = null` to automatically generate a secure random password
+2. **Manual Password**: Provide your own password via the `master_password` variable
+3. **AWS Secrets Manager**: Set `manage_user_password = true` to let AWS manage the password in Secrets Manager
 
 ```hcl
-module "this" {
-  source = "git::https://github.com/sourcefuse/terraform-aws-refarch-<module_name>"
+# Option 1: Random password generation
+module "redshift" {
+  source = "path/to/terraform-aws-arc-redshift"
+  
+  master_password = null  # Random password will be generated
+  # Access the generated password via: module.redshift.redshift_master_password
+}
+
+# Option 2: Manual password
+module "redshift" {
+  source = "path/to/terraform-aws-arc-redshift"
+  
+  master_password = "YourStrongPassword123!"
+}
+
+# Option 3: AWS Secrets Manager
+module "redshift" {
+  source = "path/to/terraform-aws-arc-redshift"
+  
+  manage_user_password = true
 }
 ```
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-## Requirements
+## Usage
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.3, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.0 |
+### Standard Redshift Cluster
 
-## Providers
+```hcl
+module "redshift" {
+  source = "path/to/terraform-aws-arc-redshift"
 
-No providers.
+  namespace   = "arc"
+  environment = "dev"
+  name        = "analytics"
 
-## Modules
+  enable_serverless = false
+  
+  # Cluster configuration
+  database_name     = "analytics"
+  master_username   = "admin"
+  master_password   = null  # Will generate a random password
+  # master_password   = "YourStrongPassword123!"  # Or provide your own
+  node_type         = "dc2.large"
+  cluster_type      = "single-node"
+  
+  # Network configuration
+  vpc_id            = "vpc-12345678"
+  subnet_ids        = ["subnet-12345678", "subnet-87654321"]
+  publicly_accessible = false
+  
+  # Security
+  encrypted         = true
+  
+  # Security group rules
+  ingress_rules = [
+    {
+      from_port   = 5439
+      to_port     = 5439
+      protocol    = "tcp"
+      cidr_blocks = ["10.0.0.0/16"]
+    }
+  ]
+  
+  egress_rules = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
+  
+  tags = {
+    Project     = "Analytics"
+    Department  = "Data"
+  }
+}
+```
 
-No modules.
+### Redshift Serverless
 
-## Resources
+```hcl
+module "redshift_serverless" {
+  source = "path/to/terraform-aws-arc-redshift"
 
-No resources.
+  namespace   = "arc"
+  environment = "dev"
+  name        = "analytics"
+
+  enable_serverless = true
+  
+  # Serverless configuration
+  database_name     = "analytics"
+  master_username   = "admin"
+  master_password   = null  # Will generate a random password
+  # master_password   = "YourStrongPassword123!"  # Or provide your own
+  base_capacity     = 32
+  max_capacity      = 128
+  
+  # Network configuration
+  vpc_id            = "vpc-12345678"
+  subnet_ids        = ["subnet-12345678", "subnet-87654321"]
+  publicly_accessible = false
+  
+  # Security group rules
+  ingress_rules = [
+    {
+      from_port   = 5439
+      to_port     = 5439
+      protocol    = "tcp"
+      cidr_blocks = ["10.0.0.0/16"]
+    }
+  ]
+  
+  egress_rules = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
+  
+  tags = {
+    Project     = "Analytics"
+    Department  = "Data"
+  }
+}
+```
 
 ## Inputs
 
-No inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|----------|
+| namespace | Namespace of the project | `string` | n/a | yes |
+| environment | Name of the environment | `string` | n/a | yes |
+| name | Name for the Redshift resources | `string` | n/a | yes |
+| enable_serverless | Enable Redshift Serverless. If true, creates the serverless module; if false, creates the standard cluster module | `bool` | `false` | no |
+| database_name | The name of the database to create | `string` | n/a | yes |
+| master_username | Username for the master DB user | `string` | n/a | yes |
+| master_password | Password for the master DB user. If null, a random password will be generated | `string` | `null` | no |
+| manage_user_password | Set to true to allow RDS to manage the master user password in Secrets Manager | `bool` | `null` | no |
+| vpc_id | ID of the VPC for Redshift | `string` | `null` | no |
+| subnet_ids | List of subnet IDs for the Redshift subnet group | `list(string)` | `[]` | no |
+| publicly_accessible | If true, the cluster can be accessed from a public network | `bool` | `false` | no |
+| tags | Tags to apply to resources | `map(string)` | `{}` | no |
+
+### Standard Redshift Cluster Specific Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|----------|
+| cluster_identifier | The Cluster Identifier | `string` | `null` | no |
+| node_type | The node type to be provisioned for the cluster | `string` | `"dc2.large"` | no |
+| number_of_nodes | Number of nodes in the cluster | `number` | `1` | no |
+| cluster_type | The cluster type to use. Either 'single-node' or 'multi-node' | `string` | `"single-node"` | no |
+| skip_final_snapshot | Determines whether a final snapshot of the cluster is created before Redshift deletes it | `bool` | `false` | no |
+| encrypted | If true, the data in the cluster is encrypted at rest | `bool` | `true` | no |
+
+### Redshift Serverless Specific Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|----------|
+| namespace_name | The name of the Redshift Serverless namespace | `string` | `null` | no |
+| workgroup_name | The name of the Redshift Serverless workgroup | `string` | `null` | no |
+| base_capacity | The base data warehouse capacity in Redshift Processing Units (RPUs) | `number` | `32` | no |
+| max_capacity | The maximum data warehouse capacity in Redshift Processing Units (RPUs) | `number` | `512` | no |
 
 ## Outputs
 
-No outputs.
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+### Standard Redshift Cluster Outputs
 
-## Versioning  
-This project uses a `.version` file at the root of the repo which the pipeline reads from and does a git tag.  
+| Name | Description |
+|------|-------------|
+| redshift_cluster_endpoint | The connection endpoint for the Redshift cluster |
+| redshift_cluster_id | The ID of the Redshift cluster |
+| redshift_cluster_arn | The ARN of the Redshift cluster |
+| redshift_cluster_security_group_id | The ID of the security group associated with the Redshift cluster |
 
-When you intend to commit to `main`, you will need to increment this version. Once the project is merged,
-the pipeline will kick off and tag the latest git commit.  
+### Redshift Serverless Outputs
 
-## Development
+| Name | Description |
+|------|-------------|
+| redshift_serverless_namespace_id | The ID of the Redshift Serverless namespace |
+| redshift_serverless_namespace_arn | The ARN of the Redshift Serverless namespace |
+| redshift_serverless_workgroup_id | The ID of the Redshift Serverless workgroup |
+| redshift_serverless_workgroup_arn | The ARN of the Redshift Serverless workgroup |
+| redshift_serverless_endpoint | The endpoint URL for the Redshift Serverless workgroup |
+| redshift_serverless_security_group_id | The ID of the security group associated with the Redshift Serverless workgroup |
 
-### Prerequisites
+## License
 
-- [terraform](https://learn.hashicorp.com/terraform/getting-started/install#installing-terraform)
-- [terraform-docs](https://github.com/segmentio/terraform-docs)
-- [pre-commit](https://pre-commit.com/#install)
-- [golang](https://golang.org/doc/install#install)
-- [golint](https://github.com/golang/lint#installation)
-
-### Configurations
-
-- Configure pre-commit hooks
-  ```sh
-  pre-commit install
-  ```
-
-### Versioning
-
-while Contributing or doing git commit please specify the breaking change in your commit message whether its major,minor or patch
-
-For Example
-
-```sh
-git commit -m "your commit message #major"
-```
-By specifying this , it will bump the version and if you don't specify this in your commit message then by default it will consider patch and will bump that accordingly
-
-### Tests
-- Tests are available in `test` directory
-- Configure the dependencies
-  ```sh
-  cd test/
-  go mod init github.com/sourcefuse/terraform-aws-refarch-<module_name>
-  go get github.com/gruntwork-io/terratest/modules/terraform
-  ```
-- Now execute the test  
-  ```sh
-  go test -timeout  30m
-  ```
-
-## Authors
-
-This project is authored by:
-- SourceFuse ARC Team
+This module is licensed under the MIT License.
