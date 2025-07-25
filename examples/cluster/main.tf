@@ -45,30 +45,12 @@ module "redshift" {
   # Cluster configuration
   database_name        = var.database_name
   master_username      = var.master_username
-  master_password      = var.master_password # Will use random password if null
   manage_user_password = var.manage_user_password
+  security_group_data    = var.security_group_data
+  security_group_name           = var.security_group_name
   node_type            = var.node_type
   number_of_nodes      = var.node_count
   cluster_type         = var.node_count > 1 ? "multi-node" : "single-node"
-
-  # Security configuration
-  ingress_rules = [
-    {
-      from_port   = 5439
-      to_port     = 5439
-      protocol    = "tcp"
-      cidr_blocks = [data.aws_vpc.vpc.cidr_block]
-    }
-  ]
-
-  egress_rules = [
-    {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-  ]
 
   # Other configuration
   skip_final_snapshot = true

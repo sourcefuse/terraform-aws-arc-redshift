@@ -12,6 +12,10 @@ output "redshift_cluster_arn" {
   description = "The ARN of the Redshift cluster"
   value       = var.enable_serverless ? null : try(module.redshift_cluster[0].redshift_cluster_arn, null)
 }
+output "redshift_cluster_namespace_arn" {
+  description = "The ARN of the Redshift cluster"
+  value       = var.enable_serverless ? null : try(module.redshift_cluster[0].redshift_cluster_namespace_arn, null)
+}
 
 output "redshift_cluster_endpoint" {
   description = "The connection endpoint for the Redshift cluster"
@@ -69,20 +73,10 @@ output "redshift_serverless_endpoint" {
   value       = var.enable_serverless ? try(module.redshift_serverless[0].redshift_serverless_endpoint, null) : null
 }
 
-output "redshift_serverless_security_group_id" {
-  description = "The ID of the security group associated with the Redshift Serverless workgroup"
-  value       = var.enable_serverless ? try(module.redshift_serverless[0].redshift_serverless_security_group_id, null) : null
-}
-
 # Common outputs
 output "redshift_endpoint" {
   description = "The endpoint of the Redshift deployment (either cluster or serverless)"
   value       = var.enable_serverless ? try(module.redshift_serverless[0].redshift_serverless_endpoint, null) : try(module.redshift_cluster[0].redshift_cluster_endpoint, null)
-}
-
-output "redshift_security_group_id" {
-  description = "The ID of the security group associated with the Redshift deployment"
-  value       = var.enable_serverless ? try(module.redshift_serverless[0].redshift_serverless_security_group_id, null) : try(module.redshift_cluster[0].redshift_security_group_id, null)
 }
 
 output "redshift_database_name" {
@@ -90,8 +84,3 @@ output "redshift_database_name" {
   value       = var.database_name
 }
 
-output "redshift_master_password" {
-  description = "The master password for the Redshift deployment (only if generated randomly)"
-  value       = var.master_password == null && var.manage_user_password == null ? random_password.master[0].result : null
-  sensitive   = true
-}

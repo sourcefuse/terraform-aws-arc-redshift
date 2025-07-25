@@ -4,7 +4,6 @@
 
 locals {
   cluster_identifier = var.cluster_identifier != null ? var.cluster_identifier : "${var.namespace}-${var.environment}-${var.name}"
-  security_group_name = var.security_group_name != "" ? var.security_group_name : "${var.namespace}-${var.environment}-${var.name}-sg"
 }
 
 resource "aws_redshift_subnet_group" "this" {
@@ -14,62 +13,58 @@ resource "aws_redshift_subnet_group" "this" {
   subnet_ids  = var.subnet_ids
   description = "Redshift subnet group for ${local.cluster_identifier}"
   
-  tags = merge(
-    var.tags,
-    {
-      Name        = "${local.cluster_identifier}-subnet-group"
-      Environment = var.environment
-      Namespace   = var.namespace
-    }
-  )
+   tags = var.tags
 }
 
-resource "aws_security_group" "this" {
-  count = var.vpc_id != null ? 1 : 0
+###################################################################
+#                Security Group
+###################################################################
+module "arc_security_group" {
+  source  = "sourcefuse/arc-security-group/aws"
+  version = "0.0.1"
+
+  count         = var.create_security_groups ? 1 : 0
+  name          = var.security_group_name
+  vpc_id        = var.vpc_id
+  ingress_rules = var.security_group_data.ingress_rules
+  egress_rules  = var.security_group_data.egress_rules
+
+  tags = var.tags
+}
   
-  name        = local.security_group_name
-  description = "Security group for Redshift cluster ${local.cluster_identifier}"
-  vpc_id      = var.vpc_id
-  
-  dynamic "ingress" {
-    for_each = var.ingress_rules
-    content {
-      from_port   = ingress.value.from_port
-      to_port     = ingress.value.to_port
-      protocol    = ingress.value.protocol
-      cidr_blocks = ingress.value.cidr_blocks
-      description = "Redshift ingress rule"
-    }
-  }
-  
-  dynamic "egress" {
-    for_each = var.egress_rules
-    content {
-      from_port   = egress.value.from_port
-      to_port     = egress.value.to_port
-      protocol    = egress.value.protocol
-      cidr_blocks = egress.value.cidr_blocks
-      description = "Redshift egress rule"
-    }
-  }
-  
-  tags = merge(
-    var.tags,
-    {
-      Name        = local.security_group_name
-      Environment = var.environment
-      Namespace   = var.namespace
-    }
-  )
+resource "random_password" "master_password" {
+  count = var.create_random_password ? 1 : 0
+
+  length           = 16
+  min_lower        = 1
+  min_numeric      = 1
+  min_special      = 1
+  min_upper        = 1
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+# SSM Parameter Store for Redshift Password (only if password is provided)
+resource "aws_ssm_parameter" "redshift_master_password" {
+  count = var.create_random_password ? 1 : 0
+
+  name        = "/${var.namespace}/${var.environment}/${var.name}/redshift/master-password"
+  description = "Master password for Redshift cluster"
+  type        = "SecureString"
+  value       = var.create_random_password ? random_password.master_password[0].result : var.master_password
+
+ tags = var.tags
+
 }
 
 resource "aws_redshift_cluster" "this" {
   cluster_identifier = local.cluster_identifier
   database_name      = var.database_name
   master_username    = var.master_username
-  master_password    = var.master_password
-  manage_master_password = var.manage_user_password
+  master_password = coalesce(var.manage_user_password, false) ? null : (var.create_random_password ? random_password.master_password[0].result : var.master_password)
+  manage_master_password =  var.manage_user_password 
   node_type          = var.node_type
+ 
   
   # Cluster sizing
   number_of_nodes    = var.cluster_type == "single-node" ? 1 : var.number_of_nodes
@@ -80,11 +75,7 @@ resource "aws_redshift_cluster" "this" {
     length(aws_redshift_subnet_group.this) > 0 ? aws_redshift_subnet_group.this[0].name : null
   )
   
-  vpc_security_group_ids = concat(
-    var.vpc_security_group_ids,
-    length(aws_security_group.this) > 0 ? [aws_security_group.this[0].id] : []
-  )
-  
+  vpc_security_group_ids = concat(var.create_security_groups ? [for sg in module.arc_security_group : sg.id] : [], var.additional_security_group_ids)
   # Snapshot configuration
   skip_final_snapshot      = var.skip_final_snapshot
   final_snapshot_identifier = var.skip_final_snapshot ? null : (
@@ -108,16 +99,17 @@ resource "aws_redshift_cluster" "this" {
   # Upgrades
   allow_version_upgrade    = var.allow_version_upgrade
   
-  tags = merge(
-    var.tags,
-    {
-      Name        = local.cluster_identifier
-      Environment = var.environment
-      Namespace   = var.namespace
-    }
-  )
+  tags = var.tags
   
   lifecycle {
-    prevent_destroy = false
+    ignore_changes = [
+      automated_snapshot_retention_period,  
+      availability_zone_relocation_enabled, 
+      cluster_type,                          
+      preferred_maintenance_window,
+      allow_version_upgrade,
+      number_of_nodes,
+      final_snapshot_identifier,
+    ]
   }
 }

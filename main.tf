@@ -18,25 +18,7 @@ terraform {
 
 data "aws_caller_identity" "current" {}
 
-###############################################################################
-####################     Random Password Generation   #######################
-###############################################################################
 
-resource "random_password" "master" {
-  count = var.master_password == null && var.manage_user_password == null ? 1 : 0
-
-  length           = 41
-  special          = true
-  override_special = "!#*^"
-
-  lifecycle {
-    ignore_changes = [
-      length,
-      special,
-      override_special
-    ]
-  }
-}
 
 ###############################################################################
 ####################     Standard Redshift Module Call   ###################
@@ -56,8 +38,10 @@ module "redshift_cluster" {
   cluster_identifier   = var.cluster_identifier
   database_name        = var.database_name
   master_username      = var.master_username
-  master_password      = var.master_password == null && var.manage_user_password == null ? random_password.master[0].result : var.master_password
+  master_password      = var.master_password 
   manage_user_password = var.manage_user_password
+  create_random_password   = var.create_random_password
+  
 
   # Node configuration
   node_type       = var.node_type
@@ -68,12 +52,11 @@ module "redshift_cluster" {
   vpc_id                    = var.vpc_id
   subnet_ids                = var.subnet_ids
   cluster_subnet_group_name = var.cluster_subnet_group_name
-  vpc_security_group_ids    = var.vpc_security_group_ids
-  security_group_name       = var.security_group_name
-
-  # Security group rules
-  ingress_rules = var.ingress_rules
-  egress_rules  = var.egress_rules
+  cluster_parameter_group_name = var.cluster_parameter_group_name
+  security_group_data    = var.security_group_data
+  security_group_name    = var.security_group_name
+  create_security_groups   = var.create_security_groups
+ 
 
   # Snapshot configuration
   skip_final_snapshot                 = var.skip_final_snapshot
@@ -83,7 +66,6 @@ module "redshift_cluster" {
 
   # Other configuration
   port                         = var.port
-  cluster_parameter_group_name = var.cluster_parameter_group_name
   publicly_accessible          = var.publicly_accessible
   enhanced_vpc_routing         = var.enhanced_vpc_routing
   kms_key_id                   = var.kms_key_id
@@ -116,23 +98,27 @@ module "redshift_serverless" {
 
   # Database configuration
   db_name              = var.database_name
-  admin_username       = var.master_username
-  admin_password       = var.master_password == null && var.manage_user_password == null ? random_password.master[0].result : var.master_password
-  manage_user_password = var.manage_user_password
+  admin_username       = var.admin_username
+  admin_password       = var.admin_password
+  manage_admin_password = var.manage_admin_password
 
-  # Network configuration
-  vpc_id                 = var.vpc_id
-  subnet_ids             = var.subnet_ids
-  vpc_security_group_ids = var.vpc_security_group_ids
-  security_group_name    = var.security_group_name
+  create_random_password   = var.create_random_password
+  create_security_groups   = var.create_security_groups
 
-  # Security group rules
-  ingress_rules = var.ingress_rules
-  egress_rules  = var.egress_rules
-
-  # Other configuration
+  vpc_id              = var.vpc_id
+  subnet_ids          = var.subnet_ids
+  port                = var.port
+  enhanced_vpc_routing = var.enhanced_vpc_routing
+  track_name          = var.track_name
   publicly_accessible = var.publicly_accessible
+
+  config_parameters   = var.config_parameters
+
   kms_key_id          = var.kms_key_id
+
+  security_group_name           = var.security_group_name
+  additional_security_group_ids = var.additional_security_group_ids
+  security_group_data           = var.security_group_data
 
   # Tags - pass through the tags from the calling module
   tags = var.tags

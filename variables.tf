@@ -66,6 +66,53 @@ variable "master_username" {
   sensitive   = true
 }
 
+variable "admin_password" {
+  type      = string
+  sensitive = true
+  default   = null
+}
+
+variable "manage_admin_password" {
+  description = "If true, Redshift will manage the admin password"
+  type        = bool
+  default     = false
+}
+variable "create_security_groups" {
+  description = "Whether to create security groups for Redshift Serverless resources"
+  type        = bool
+  default     = true
+}
+variable "create_random_password" {
+  description = "Determines whether to create random password for cluster `master_password`"
+  type        = bool
+  default     = true
+}
+
+variable "admin_username" {
+  description = "Admin username for the Redshift Serverless namespace."
+  type        = string
+  default = "admin"
+}
+
+variable "track_name" {
+  description = "Optional track name for Redshift Serverless (used for versioning or preview tracks)."
+  type        = string
+  default     = null
+}
+
+variable "config_parameters" {
+  description = "A list of configuration parameters to apply to the Redshift Serverless namespace."
+  type        = list(object({
+    parameter_key   = string
+    parameter_value = string
+  }))
+  default = []
+}
+variable "additional_security_group_ids" {
+  description = "Additional security group IDs to be added to the Redshift Serverless workgroup."
+  type        = list(string)
+  default     = []
+}
 variable "master_password" {
   description = "Password for the master DB user. If null, a random password will be generated"
   type        = string
@@ -187,10 +234,39 @@ variable "vpc_id" {
   default     = null
 }
 
+variable "security_group_data" {
+  type = object({
+    security_group_ids_to_attach = optional(list(string), [])
+    create                       = optional(bool, true)
+    description                  = optional(string, null)
+    ingress_rules = optional(list(object({
+      description              = optional(string, null)
+      cidr_block               = optional(string, null)
+      source_security_group_id = optional(string, null)
+      from_port                = number
+      ip_protocol              = string
+      to_port                  = string
+      self                     = optional(bool, false)
+    })), [])
+    egress_rules = optional(list(object({
+      description                   = optional(string, null)
+      cidr_block                    = optional(string, null)
+      destination_security_group_id = optional(string, null)
+      from_port                     = number
+      ip_protocol                   = string
+      to_port                       = string
+      prefix_list_id                = optional(string, null)
+    })), [])
+  })
+  description = "(optional) Security Group data"
+  default = {
+    create = false
+  }
+}
 variable "security_group_name" {
-  description = "Name for the security group"
   type        = string
-  default     = ""
+  description = "Redshift Serverless resourcesr security group name"
+  default     = "Redshift-Serverless-sg"
 }
 
 variable "tags" {

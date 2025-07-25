@@ -54,55 +54,13 @@ resource "aws_kms_alias" "redshift" {
   target_key_id = aws_kms_key.redshift[0].key_id
 }
 
-# S3 Buckets for Redshift
-resource "aws_s3_bucket" "logs" {
-  count = var.enable_logging ? 1 : 0
 
-  bucket = "${var.namespace}-${var.environment}-${var.name}-logs"
 
-  tags = merge(
-    module.tags.tags,
-    {
-      Name = "${var.namespace}-${var.environment}-${var.name}-logs"
-    }
-  )
-}
-
-resource "aws_s3_bucket" "data" {
-  count = var.enable_s3_integration ? 1 : 0
-
-  bucket = "${var.namespace}-${var.environment}-${var.name}-data"
-
-  tags = merge(
-    module.tags.tags,
-    {
-      Name = "${var.namespace}-${var.environment}-${var.name}-data"
-    }
-  )
-}
-
-# SSM Parameter Store for Redshift Password (only if password is provided)
-resource "aws_ssm_parameter" "redshift_master_password" {
-  count = var.master_password != null ? 1 : 0
-
-  name        = "/${var.namespace}/${var.environment}/${var.name}/redshift/master-password"
-  description = "Master password for Redshift cluster"
-  type        = "SecureString"
-  value       = var.master_password
-  key_id      = var.enable_encryption ? aws_kms_key.redshift[0].id : null
-
-  tags = merge(
-    module.tags.tags,
-    {
-      Name = "${var.namespace}-${var.environment}-${var.name}"
-    }
-  )
-}
 
 ################################################################################
 ## Redshift Module
 ################################################################################
-module "redshift" {
+module "redshift_serverless" {
   source = "../../"
 
   # Toggle between standard Redshift and Redshift Serverless
@@ -114,20 +72,14 @@ module "redshift" {
 
   # Network configuration - using existing VPC and subnets
   vpc_id     = data.aws_vpc.vpc.id
-  subnet_ids = local.subnet_ids
+  subnet_ids = data.aws_subnets.private.ids
+  security_group_data    = var.security_group_data
+  security_group_name    = var.security_group_name
 
-  # Common configuration
+  # Common configuration 
   database_name        = var.database_name
   master_username      = var.master_username
-  master_password      = var.master_password # Will use random password if null
   manage_user_password = var.manage_user_password
-
-  # Standard Redshift configuration (used when enable_serverless = false)
-  node_type       = var.node_type
-  number_of_nodes = var.node_count
-  cluster_type    = var.node_count > 1 ? "multi-node" : "single-node"
-
-  # Serverless Redshift configuration (used when enable_serverless = true)
   namespace_name = var.namespace_name
   workgroup_name = var.workgroup_name
   base_capacity  = var.base_capacity
@@ -140,10 +92,9 @@ module "redshift" {
   # Other configuration
   skip_final_snapshot                 = var.skip_final_snapshot
   publicly_accessible                 = var.publicly_accessible
-  enhanced_vpc_routing                = true
+  enhanced_vpc_routing                = false
   allow_version_upgrade               = true
   automated_snapshot_retention_period = var.automated_snapshot_retention_period
 
-  # Use tags from the tags module
   tags = module.tags.tags
 }

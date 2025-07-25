@@ -18,6 +18,11 @@ variable "cluster_identifier" {
   type        = string
   default     = null
 }
+variable "create_random_password" {
+  description = "Determines whether to create random password for cluster `master_password`"
+  type        = bool
+  default     = true
+}
 
 variable "database_name" {
   description = "The name of the database to create"
@@ -40,7 +45,7 @@ variable "master_password" {
 variable "manage_user_password" {
   description = "Set to true to allow RDS to manage the master user password in Secrets Manager"
   type        = bool
-  default     = null
+  default     = false
 }
 
 variable "node_type" {
@@ -151,32 +156,51 @@ variable "vpc_id" {
   default     = null
 }
 
-variable "ingress_rules" {
-  description = "A list of ingress rules for the security group."
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
-  }))
-  default = []
+variable "create_security_groups" {
+  description = "Whether to create security groups for Redshift resources"
+  type        = bool
+  default     = true
 }
 
-variable "egress_rules" {
-  description = "A list of egress rules for the security group."
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
-  }))
-  default = []
+variable "additional_security_group_ids" {
+  description = "List of additional security group IDs to attach to the domain"
+  type        = list(string)
+  default     = []
 }
 
+variable "security_group_data" {
+  type = object({
+    security_group_ids_to_attach = optional(list(string), [])
+    create                       = optional(bool, true)
+    description                  = optional(string, null)
+    ingress_rules = optional(list(object({
+      description              = optional(string, null)
+      cidr_block               = optional(string, null)
+      source_security_group_id = optional(string, null)
+      from_port                = number
+      ip_protocol              = string
+      to_port                  = string
+      self                     = optional(bool, false)
+    })), [])
+    egress_rules = optional(list(object({
+      description                   = optional(string, null)
+      cidr_block                    = optional(string, null)
+      destination_security_group_id = optional(string, null)
+      from_port                     = number
+      ip_protocol                   = string
+      to_port                       = string
+      prefix_list_id                = optional(string, null)
+    })), [])
+  })
+  description = "(optional) Security Group data"
+  default = {
+    create = false
+  }
+}
 variable "security_group_name" {
-  description = "Name for the security group"
   type        = string
-  default     = ""
+  description = "Redshift resourcesr security group name"
+  default     = "Redshift-sg"
 }
 
 variable "tags" {
