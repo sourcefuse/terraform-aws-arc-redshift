@@ -3,7 +3,7 @@ name: Trivy Security Scan with Security Hub Integration
 
 'on':
   push:
-    branches: [main]
+    branches: [feature/redshift-module]
   pull_request:
     branches: [main]
 permissions:

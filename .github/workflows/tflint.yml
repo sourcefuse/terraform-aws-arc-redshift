@@ -12,8 +12,7 @@ on:                 # yamllint disable-line rule:truthy
 
 jobs:
   tflint:
-    runs-on:
-      - arc
+    runs-on: ubuntu-latest
     name: tflint
     steps:
       - uses: actions/checkout@master
