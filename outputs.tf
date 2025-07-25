@@ -67,7 +67,6 @@ output "redshift_serverless_workgroup_arn" {
   description = "The ARN of the Redshift Serverless workgroup"
   value       = var.enable_serverless ? try(module.redshift_serverless[0].redshift_serverless_workgroup_arn, null) : null
 }
-
 output "redshift_serverless_endpoint" {
   description = "The endpoint URL for the Redshift Serverless workgroup"
   value       = var.enable_serverless ? try(module.redshift_serverless[0].redshift_serverless_endpoint, null) : null
@@ -83,4 +82,3 @@ output "redshift_database_name" {
   description = "The name of the database in the Redshift deployment"
   value       = var.database_name
 }
-

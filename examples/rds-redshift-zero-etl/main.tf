@@ -7,6 +7,10 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 4.0, < 6.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 }
 provider "aws" {
@@ -16,31 +20,7 @@ provider "aws" {
 
 # RDS PostgreSQL Database using SourceFuse ARC module
 locals {
-  rds_security_group_data = {
-    create      = true
-    description = "Security Group for RDS instance"
-
-    ingress_rules = [
-      {
-        description = "Allow traffic from local network"
-        cidr_block  = data.aws_vpc.this.cidr_block
-        from_port   = 5432
-        ip_protocol = "tcp"
-        to_port     = 5432
-      }
-    ]
-
-    egress_rules = [
-      {
-        description = "Allow all outbound traffic"
-        cidr_block  = "0.0.0.0/0"
-        from_port   = -1
-        ip_protocol = "-1"
-        to_port     = -1
-      }
-    ]
-  }
-   redshift_security_group_data = {
+  redshift_security_group_data = {
     create      = true
     description = "Security Group for redshift instance"
 
@@ -66,27 +46,28 @@ locals {
   }
 }
 
+
 module "rds" {
   source  = "sourcefuse/arc-db/aws"
   version = "4.0.1"
 
-  environment    = var.environment
-  namespace      = var.namespace
-  vpc_id         = data.aws_vpc.this.id
-  name           = "${var.namespace}-${var.environment}-test"
-  engine_type    = "cluster"
-  port           = 5432
-  username       = "postgres"
-  engine         = "aurora-mysql"
-  engine_version = "8.0.mysql_aurora.3.05.2"
+  environment                     = var.environment
+  namespace                       = var.namespace
+  vpc_id                          = data.aws_vpc.this.id
+  name                            = "${var.namespace}-${var.environment}-test"
+  engine_type                     = "cluster"
+  port                            = 5432
+  username                        = "postgres"
+  engine                          = "aurora-mysql"
+  engine_version                  = "8.0.mysql_aurora.3.05.2"
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.mysql_zerotetl.name
 
   license_model = "general-public-license"
   rds_cluster_instances = [
     {
-      instance_class          = "db.r5.large"
-      apply_immediately       = true
-      promotion_tier          = 1
+      instance_class    = "db.r5.large"
+      apply_immediately = true
+      promotion_tier    = 1
     }
   ]
 
@@ -117,25 +98,25 @@ module "redshift" {
   name        = "${var.namespace}-${var.environment}-redshift"
 
   enable_serverless = false
-  
+
   # Cluster configuration
-  database_name     = var.redshift_database_name
-  master_username   = var.redshift_master_username
-  create_random_password   =  true
-  node_type         = "ra3.large" # Must be RA3 for Zero-ETL
-  cluster_type      = "multi-node"
-  number_of_nodes   = 2
-  
+  database_name          = var.redshift_database_name
+  master_username        = var.redshift_master_username
+  create_random_password = true
+  node_type              = "ra3.large" # Must be RA3 for Zero-ETL
+  cluster_type           = "multi-node"
+  number_of_nodes        = 2
+
   # Network configuration
-  vpc_id     = data.aws_vpc.this.id
-  subnet_ids = data.aws_subnets.private.ids
-  security_group_data    = local.redshift_security_group_data 
-  security_group_name           = var.security_group_name
+  vpc_id              = data.aws_vpc.this.id
+  subnet_ids          = data.aws_subnets.private.ids
+  security_group_data = local.redshift_security_group_data
+  security_group_name = var.security_group_name
   publicly_accessible = false
-  
+
   # Security
-  encrypted         = true
-  
+  encrypted = true
+
   tags = var.tags
 }
 
@@ -153,7 +134,7 @@ resource "aws_rds_integration" "this" {
       kms_key_id
     ]
   }
-depends_on = [aws_redshift_resource_policy.account, module.rds]
+  depends_on = [aws_redshift_resource_policy.account, module.rds]
 }
 
 resource "aws_rds_cluster_parameter_group" "mysql_zerotetl" {
@@ -169,13 +150,13 @@ resource "aws_rds_cluster_parameter_group" "mysql_zerotetl" {
       apply_method = parameter.value.apply_method
     }
   }
-  
+
 }
 
 
 locals {
-  
-aurora_mysql_zerotetl_parameters = {
+
+  aurora_mysql_zerotetl_parameters = {
     aurora_enhanced_binlog = {
       value        = "1"
       apply_method = "pending-reboot"
@@ -241,4 +222,3 @@ resource "aws_redshift_resource_policy" "account" {
     }]
   })
 }
-

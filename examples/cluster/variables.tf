@@ -34,13 +34,6 @@ variable "master_username" {
   default     = "admin"
 }
 
-variable "master_password" {
-  description = "Password for the master DB user. If null, a random password will be generated"
-  type        = string
-  sensitive   = true
-  default     = null
-}
-
 variable "manage_user_password" {
   description = "Set to true to allow RDS to manage the master user password in Secrets Manager"
   type        = bool
@@ -58,6 +51,7 @@ variable "node_count" {
   type        = number
   default     = 2
 }
+
 variable "security_group_data" {
   type = object({
     security_group_ids_to_attach = optional(list(string), [])

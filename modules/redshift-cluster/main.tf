@@ -8,12 +8,12 @@ locals {
 
 resource "aws_redshift_subnet_group" "this" {
   count = length(var.subnet_ids) > 0 && var.cluster_subnet_group_name == null ? 1 : 0
-  
+
   name        = "${local.cluster_identifier}-subnet-group"
   subnet_ids  = var.subnet_ids
   description = "Redshift subnet group for ${local.cluster_identifier}"
-  
-   tags = var.tags
+
+  tags = var.tags
 }
 
 ###################################################################
@@ -31,7 +31,7 @@ module "arc_security_group" {
 
   tags = var.tags
 }
-  
+
 resource "random_password" "master_password" {
   count = var.create_random_password ? 1 : 0
 
@@ -53,59 +53,58 @@ resource "aws_ssm_parameter" "redshift_master_password" {
   type        = "SecureString"
   value       = var.create_random_password ? random_password.master_password[0].result : var.master_password
 
- tags = var.tags
+  tags = var.tags
 
 }
 
 resource "aws_redshift_cluster" "this" {
-  cluster_identifier = local.cluster_identifier
-  database_name      = var.database_name
-  master_username    = var.master_username
-  master_password = coalesce(var.manage_user_password, false) ? null : (var.create_random_password ? random_password.master_password[0].result : var.master_password)
-  manage_master_password =  var.manage_user_password 
-  node_type          = var.node_type
- 
-  
+  cluster_identifier     = local.cluster_identifier
+  database_name          = var.database_name
+  master_username        = var.master_username
+  master_password        = coalesce(var.manage_user_password, false) ? null : (var.create_random_password ? random_password.master_password[0].result : var.master_password)
+  manage_master_password = var.manage_user_password
+  node_type              = var.node_type
+
   # Cluster sizing
-  number_of_nodes    = var.cluster_type == "single-node" ? 1 : var.number_of_nodes
-  cluster_type       = var.cluster_type
-  
+  number_of_nodes = var.cluster_type == "single-node" ? 1 : var.number_of_nodes
+  cluster_type    = var.cluster_type
+
   # Network configuration
   cluster_subnet_group_name = var.cluster_subnet_group_name != null ? var.cluster_subnet_group_name : (
     length(aws_redshift_subnet_group.this) > 0 ? aws_redshift_subnet_group.this[0].name : null
   )
-  
+
   vpc_security_group_ids = concat(var.create_security_groups ? [for sg in module.arc_security_group : sg.id] : [], var.additional_security_group_ids)
   # Snapshot configuration
-  skip_final_snapshot      = var.skip_final_snapshot
+  skip_final_snapshot = var.skip_final_snapshot
   final_snapshot_identifier = var.skip_final_snapshot ? null : (
     var.final_snapshot_identifier != null ? var.final_snapshot_identifier : "${local.cluster_identifier}-final-snapshot-${formatdate("YYYYMMDDhhmmss", timestamp())}"
   )
-  snapshot_identifier      = var.snapshot_identifier
-  
+  snapshot_identifier = var.snapshot_identifier
+
   # Maintenance and backup
   automated_snapshot_retention_period = var.automated_snapshot_retention_period
-  port                     = var.port
-  cluster_parameter_group_name = var.cluster_parameter_group_name
-  
+  port                                = var.port
+  cluster_parameter_group_name        = var.cluster_parameter_group_name
+
   # Access and routing
-  publicly_accessible      = var.publicly_accessible
-  enhanced_vpc_routing     = var.enhanced_vpc_routing
-  
+  publicly_accessible  = var.publicly_accessible
+  enhanced_vpc_routing = var.enhanced_vpc_routing
+
   # Encryption
-  kms_key_id               = var.kms_key_id
-  encrypted                = var.encrypted
-  
+  kms_key_id = var.kms_key_id
+  encrypted  = var.encrypted
+
   # Upgrades
-  allow_version_upgrade    = var.allow_version_upgrade
-  
+  allow_version_upgrade = var.allow_version_upgrade
+
   tags = var.tags
-  
+
   lifecycle {
     ignore_changes = [
-      automated_snapshot_retention_period,  
-      availability_zone_relocation_enabled, 
-      cluster_type,                          
+      automated_snapshot_retention_period,
+      availability_zone_relocation_enabled,
+      cluster_type,
       preferred_maintenance_window,
       allow_version_upgrade,
       number_of_nodes,

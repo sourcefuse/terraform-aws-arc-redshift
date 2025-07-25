@@ -12,28 +12,6 @@ variable "namespace" {
   description = "Namespace of the project, i.e. arc"
 }
 
-variable "ingress_rules" {
-  description = "A list of ingress rules for the security group."
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
-  }))
-  default = []
-}
-
-variable "egress_rules" {
-  description = "A list of egress rules for the security group."
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
-  }))
-  default = []
-}
-
 variable "enable_serverless" {
   description = "Enable Redshift Serverless. If true, creates the serverless module; if false, creates the standard cluster module."
   type        = bool
@@ -66,12 +44,6 @@ variable "master_username" {
   sensitive   = true
 }
 
-variable "admin_password" {
-  type      = string
-  sensitive = true
-  default   = null
-}
-
 variable "manage_admin_password" {
   description = "If true, Redshift will manage the admin password"
   type        = bool
@@ -91,7 +63,7 @@ variable "create_random_password" {
 variable "admin_username" {
   description = "Admin username for the Redshift Serverless namespace."
   type        = string
-  default = "admin"
+  default     = "admin"
 }
 
 variable "track_name" {
@@ -102,7 +74,7 @@ variable "track_name" {
 
 variable "config_parameters" {
   description = "A list of configuration parameters to apply to the Redshift Serverless namespace."
-  type        = list(object({
+  type = list(object({
     parameter_key   = string
     parameter_value = string
   }))
@@ -148,12 +120,6 @@ variable "cluster_subnet_group_name" {
   description = "The name of a cluster subnet group to be associated with this cluster. If not specified, a new subnet group will be created"
   type        = string
   default     = null
-}
-
-variable "vpc_security_group_ids" {
-  description = "A list of Virtual Private Cloud (VPC) security groups to be associated with the cluster"
-  type        = list(string)
-  default     = []
 }
 
 variable "skip_final_snapshot" {
@@ -233,7 +199,6 @@ variable "vpc_id" {
   type        = string
   default     = null
 }
-
 variable "security_group_data" {
   type = object({
     security_group_ids_to_attach = optional(list(string), [])

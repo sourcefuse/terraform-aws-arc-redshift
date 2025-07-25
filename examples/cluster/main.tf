@@ -9,9 +9,12 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 }
-
 provider "aws" {
   region = var.region
 }
@@ -46,8 +49,8 @@ module "redshift" {
   database_name        = var.database_name
   master_username      = var.master_username
   manage_user_password = var.manage_user_password
-  security_group_data    = var.security_group_data
-  security_group_name           = var.security_group_name
+  security_group_data  = var.security_group_data
+  security_group_name  = var.security_group_name
   node_type            = var.node_type
   number_of_nodes      = var.node_count
   cluster_type         = var.node_count > 1 ? "multi-node" : "single-node"

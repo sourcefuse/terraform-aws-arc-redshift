@@ -12,4 +12,3 @@ output "redshift_endpoint" {
   description = "The endpoint of the Redshift deployment (either cluster or serverless)"
   value       = module.redshift.redshift_endpoint
 }
-

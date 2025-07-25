@@ -30,5 +30,3 @@ output "redshift_cluster_database_name" {
   description = "The name of the default database in the Redshift cluster"
   value       = aws_redshift_cluster.this.database_name
 }
-
-

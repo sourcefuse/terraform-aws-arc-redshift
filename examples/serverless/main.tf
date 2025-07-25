@@ -9,6 +9,10 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 4.0, < 6.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 }
 
@@ -71,19 +75,19 @@ module "redshift_serverless" {
   name        = var.name
 
   # Network configuration - using existing VPC and subnets
-  vpc_id     = data.aws_vpc.vpc.id
-  subnet_ids = data.aws_subnets.private.ids
-  security_group_data    = var.security_group_data
-  security_group_name    = var.security_group_name
+  vpc_id              = data.aws_vpc.vpc.id
+  subnet_ids          = data.aws_subnets.private.ids
+  security_group_data = var.security_group_data
+  security_group_name = var.security_group_name
 
-  # Common configuration 
+  # Common configuration
   database_name        = var.database_name
   master_username      = var.master_username
   manage_user_password = var.manage_user_password
-  namespace_name = var.namespace_name
-  workgroup_name = var.workgroup_name
-  base_capacity  = var.base_capacity
-  max_capacity   = var.max_capacity
+  namespace_name       = var.namespace_name
+  workgroup_name       = var.workgroup_name
+  base_capacity        = var.base_capacity
+  max_capacity         = var.max_capacity
 
   # Security configuration
   encrypted  = var.enable_encryption

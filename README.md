@@ -9,7 +9,7 @@
 
 ## Overview
 
-The ARC Terraform-aws-arc-redshift module provides a comprehensive and unified solution for deploying Amazon Redshift data warehousing infrastructure on AWS. This versatile module supports both traditional Amazon Redshift provisioned clusters and the newer Redshift Serverless workgroups, allowing you to choose the 
+The ARC Terraform-aws-arc-redshift module provides a comprehensive and unified solution for deploying Amazon Redshift data warehousing infrastructure on AWS. This versatile module supports both traditional Amazon Redshift provisioned clusters and the newer Redshift Serverless workgroups, allowing you to choose the
 deployment model that best fits your workload requirements and cost optimization needs.
 
 ### Prerequisites
@@ -147,7 +147,6 @@ terraform apply -var-file prod.tfvars
 Destroy Terraform
 ```shell
 terraform destroy -var-file dev.tfvars
-
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

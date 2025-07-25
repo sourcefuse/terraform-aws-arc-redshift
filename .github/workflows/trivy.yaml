@@ -49,6 +49,7 @@ jobs:
           exit-code: 1
           format: sarif
           output: trivy-results.sarif
+
       - name: Run Trivy vulnerability scanner json
         uses: aquasecurity/trivy-action@0.30.0
         continue-on-error: true
@@ -64,6 +65,7 @@ jobs:
         with:
           name: trivy-scan-report
           path: trivy-results.json
+
       - name: Generate Security Hub findings
         if: always()
         run: |

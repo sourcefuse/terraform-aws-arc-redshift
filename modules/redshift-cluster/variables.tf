@@ -41,7 +41,6 @@ variable "master_password" {
   sensitive   = true
   default     = null
 }
-
 variable "manage_user_password" {
   description = "Set to true to allow RDS to manage the master user password in Secrets Manager"
   type        = bool
@@ -72,11 +71,6 @@ variable "cluster_subnet_group_name" {
   default     = null
 }
 
-variable "vpc_security_group_ids" {
-  description = "A list of Virtual Private Cloud (VPC) security groups to be associated with the cluster"
-  type        = list(string)
-  default     = []
-}
 
 variable "skip_final_snapshot" {
   description = "Determines whether a final snapshot of the cluster is created before Redshift deletes it"

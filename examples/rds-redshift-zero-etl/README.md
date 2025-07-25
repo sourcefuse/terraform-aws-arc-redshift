@@ -66,42 +66,8 @@ After the infrastructure is created, you can verify the integration:
 5. Connect to your database
 6. Run a query to verify the external schema:
 
-```sql
-SELECT * FROM rds_schema.your_table;
-```
 
-### 4. Working with Zero-ETL Data
 
-Once the integration is set up, you can:
-
-1. Query RDS data directly from Redshift:
-
-```sql
-SELECT * FROM rds_schema.your_table;
-```
-
-2. Create materialized views for better performance:
-
-```sql
-CREATE MATERIALIZED VIEW mv_your_table AS
-SELECT * FROM rds_schema.your_table;
-```
-
-3. Join RDS data with Redshift data:
-
-```sql
-SELECT r.*, d.additional_column
-FROM rds_schema.your_table r
-JOIN redshift_table d ON r.id = d.id;
-```
-
-## Clean Up
-
-To destroy all resources created by this example:
-
-```bash
-terraform destroy
-```
 
 ## References
 

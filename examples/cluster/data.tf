@@ -7,7 +7,6 @@ data "aws_vpc" "vpc" {
     values = ["arc-poc-vpc"]
   }
 }
-
 data "aws_subnets" "private" {
   filter {
     name = "tag:Name"
