@@ -33,6 +33,7 @@ module "redshift_cluster" {
   security_group_data          = var.security_group_data
   security_group_name          = var.security_group_name
   create_security_groups       = var.create_security_groups
+  redshift_logging             = var.redshift_logging
 
 
   # Snapshot configuration

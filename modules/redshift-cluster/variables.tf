@@ -59,6 +59,19 @@ variable "number_of_nodes" {
   default     = 1
 }
 
+variable "redshift_logging" {
+  description = "Configuration for Redshift logging"
+  type = object({
+    enable               = optional(bool, false)
+    bucket_name          = optional(string, null)
+    s3_key_prefix        = optional(string, "redshift-logs/")
+    log_destination_type = optional(string, "s3")
+  })
+  default = {
+    enable = false
+  }
+}
+
 variable "cluster_type" {
   description = "The cluster type to use. Either 'single-node' or 'multi-node'"
   type        = string

@@ -56,6 +56,14 @@ resource "aws_ssm_parameter" "redshift_master_password" {
   tags = var.tags
 
 }
+resource "aws_redshift_logging" "example" {
+  count                = var.redshift_logging.enable ? 1 : 0
+  cluster_identifier   = local.cluster_identifier
+  log_destination_type = var.redshift_logging.log_destination_type
+  bucket_name          = var.redshift_logging.bucket_name
+  s3_key_prefix        = var.redshift_logging.s3_key_prefix
+}
+
 
 resource "aws_redshift_cluster" "this" {
   cluster_identifier     = local.cluster_identifier

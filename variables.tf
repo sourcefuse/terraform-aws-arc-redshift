@@ -54,6 +54,19 @@ variable "create_security_groups" {
   type        = bool
   default     = true
 }
+variable "redshift_logging" {
+  description = "Configuration for Redshift logging"
+  type = object({
+    enable               = optional(bool, false)
+    bucket_name          = optional(string, null)
+    s3_key_prefix        = optional(string, "redshift-logs/")
+    log_destination_type = optional(string, "s3")
+  })
+  default = {
+    enable = false
+  }
+}
+
 variable "create_random_password" {
   description = "Determines whether to create random password for cluster `master_password`"
   type        = bool

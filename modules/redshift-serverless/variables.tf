@@ -46,7 +46,6 @@ variable "admin_username" {
   default     = null
 }
 
-
 variable "manage_admin_password" {
   description = "Whether to allow Redshift to manage the admin password automatically"
   type        = bool
