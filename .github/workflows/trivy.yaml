@@ -3,7 +3,7 @@ name: Trivy Security Scan with Security Hub Integration
 
 'on':
   push:
-    branches: [feature/redshift-module]
+    branches: [main]
   pull_request:
     branches: [main]
 permissions:
@@ -49,22 +49,6 @@ jobs:
           exit-code: 1
           format: sarif
           output: trivy-results.sarif
-
-      - name: Run Trivy vulnerability scanner json
-        uses: aquasecurity/trivy-action@0.30.0
-        continue-on-error: true
-        with:
-          image-ref: test-image:latest
-          severity: HIGH,CRITICAL
-          exit-code: 1
-          format: json
-          output: trivy-results.json
-
-      - name: Upload Trivy scan result as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-scan-report
-          path: trivy-results.json
 
       - name: Generate Security Hub findings
         if: always()
