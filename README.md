@@ -143,10 +143,6 @@ Apply Terraform
 terraform apply -var-file prod.tfvars  
 ```
 
-## Cleanup  
-Destroy Terraform
-```shell
-terraform destroy -var-file dev.tfvars
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
