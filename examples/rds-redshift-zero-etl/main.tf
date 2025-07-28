@@ -125,7 +125,7 @@ module "redshift" {
 resource "aws_rds_integration" "this" {
   integration_name = "zero-etl-integration-1"
   source_arn       = module.rds.arn
-  target_arn       = module.redshift.redshift_cluster_namespace_arn
+  target_arn       = module.redshift.cluster_namespace_arn
 
   # data_filter = ""
 
@@ -153,50 +153,8 @@ resource "aws_rds_cluster_parameter_group" "mysql_zerotetl" {
 
 }
 
-
-locals {
-
-  aurora_mysql_zerotetl_parameters = {
-    aurora_enhanced_binlog = {
-      value        = "1"
-      apply_method = "pending-reboot"
-    }
-    binlog_backup = {
-      value        = "0"
-      apply_method = "pending-reboot"
-    }
-    binlog_format = {
-      value        = "ROW"
-      apply_method = "pending-reboot"
-    }
-    binlog_replication_globaldb = {
-      value        = "0"
-      apply_method = "pending-reboot"
-    }
-    binlog_row_image = {
-      value        = "full"
-      apply_method = "pending-reboot"
-    }
-    binlog_row_metadata = {
-      value        = "full"
-      apply_method = "pending-reboot"
-    }
-    binlog_transaction_compression = {
-      value        = "OFF"
-      apply_method = "pending-reboot"
-    }
-    binlog_row_value_options = {
-      value        = ""
-      apply_method = "pending-reboot"
-    }
-    log_bin_trust_function_creators = {
-      value        = "1"
-      apply_method = "pending-reboot"
-    }
-  }
-}
 resource "aws_redshift_resource_policy" "account" {
-  resource_arn = module.redshift.redshift_cluster_namespace_arn
+  resource_arn = module.redshift.cluster_namespace_arn
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -205,7 +163,7 @@ resource "aws_redshift_resource_policy" "account" {
         AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
       }
       Action   = "redshift:CreateInboundIntegration"
-      Resource = module.redshift.redshift_cluster_namespace_arn
+      Resource = module.redshift.cluster_namespace_arn
       Sid      = ""
       },
       {

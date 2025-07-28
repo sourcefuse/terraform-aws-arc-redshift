@@ -16,7 +16,6 @@ module "redshift_cluster" {
   cluster_identifier     = var.cluster_identifier
   database_name          = var.database_name
   master_username        = var.master_username
-  master_password        = var.master_password
   manage_user_password   = var.manage_user_password
   create_random_password = var.create_random_password
 

@@ -9,15 +9,15 @@ output "kms_key_id" {
 }
 output "serverless_namespace_id" {
   description = "The ID of the Redshift Serverless namespace"
-  value       = module.redshift_serverless.redshift_serverless_namespace_id
+  value       = module.redshift_serverless.serverless_namespace_id
 }
 
 output "serverless_namespace_arn" {
   description = "The ARN of the Redshift Serverless namespace"
-  value       = module.redshift_serverless.redshift_serverless_namespace_arn
+  value       = module.redshift_serverless.serverless_namespace_arn
 }
 
 output "serverless_workgroup_arn" {
   description = "The ARN of the Redshift Serverless workgroup"
-  value       = module.redshift_serverless.redshift_serverless_workgroup_arn
+  value       = module.redshift_serverless.serverless_workgroup_arn
 }

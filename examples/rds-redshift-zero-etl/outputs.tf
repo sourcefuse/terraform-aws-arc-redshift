@@ -17,7 +17,7 @@ output "arn" {
 
 
 # Redshift outputs
-output "redshift_cluster_arn" {
+output "cluster_arn" {
   description = "The ARN of the Redshift cluster"
-  value       = module.redshift.redshift_cluster_arn
+  value       = module.redshift.cluster_arn
 }

@@ -98,12 +98,12 @@ variable "additional_security_group_ids" {
   type        = list(string)
   default     = []
 }
-variable "master_password" {
-  description = "Password for the master DB user. If null, a random password will be generated"
-  type        = string
-  sensitive   = true
-  default     = null
-}
+# variable "master_password" {
+#   description = "Password for the master DB user. If null, a random password will be generated"
+#   type        = string
+#   sensitive   = true
+#   default     = null
+# }
 
 variable "manage_user_password" {
   description = "Set to true to allow RDS to manage the master user password in Secrets Manager"
