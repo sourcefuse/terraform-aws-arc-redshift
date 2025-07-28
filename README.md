@@ -1,3 +1,4 @@
+![Module Structure](./static/banner.png)
 # AWS Redshift Terraform Module
 
 # [terraform-aws-arc-redshift](https://github.com/sourcefuse/terraform-aws-arc-redshift)
