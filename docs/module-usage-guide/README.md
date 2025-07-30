@@ -4,7 +4,7 @@
 
 ### Purpose of the Document
 
-This document provides guidelines and instructions for users looking to implement the Terraform AWS Redshift AI.
+This document provides guidelines and instructions for users looking to implement the Terraform AWS Redshift.
 
 ### Module Overview
 
