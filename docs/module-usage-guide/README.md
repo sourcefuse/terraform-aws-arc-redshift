@@ -4,7 +4,7 @@
 
 ### Purpose of the Document
 
-This document provides guidelines and instructions for users looking to implement the Terraform AWS Redshift.
+This document provides guidelines and instructions for users looking to create Redshift cluster using the module.
 
 ### Module Overview
 
