@@ -42,12 +42,13 @@ module "redshift_cluster" {
   automated_snapshot_retention_period = var.automated_snapshot_retention_period
 
   # Other configuration
-  port                  = var.port
-  publicly_accessible   = var.publicly_accessible
-  enhanced_vpc_routing  = var.enhanced_vpc_routing
-  kms_key_id            = var.kms_key_id
-  encrypted             = var.encrypted
-  allow_version_upgrade = var.allow_version_upgrade
+  port                         = var.port
+  publicly_accessible          = var.publicly_accessible
+  enhanced_vpc_routing         = var.enhanced_vpc_routing
+  kms_key_id                   = var.kms_key_id
+  encrypted                    = var.encrypted
+  allow_version_upgrade        = var.allow_version_upgrade
+  preferred_maintenance_window = var.preferred_maintenance_window
 
   # Tags - pass through the tags from the calling module
   tags = var.tags
