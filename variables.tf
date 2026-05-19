@@ -201,6 +201,12 @@ variable "allow_version_upgrade" {
   default     = true
 }
 
+variable "preferred_maintenance_window" {
+  description = "The weekly time range, in UTC, during which system maintenance can occur. Example: sat:04:00-sat:04:30."
+  type        = string
+  default     = null
+}
+
 variable "subnet_ids" {
   description = "List of subnet IDs for the Redshift subnet group"
   type        = list(string)

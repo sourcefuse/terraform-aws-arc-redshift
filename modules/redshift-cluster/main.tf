@@ -104,7 +104,8 @@ resource "aws_redshift_cluster" "this" {
   encrypted  = var.encrypted
 
   # Upgrades
-  allow_version_upgrade = var.allow_version_upgrade
+  allow_version_upgrade        = var.allow_version_upgrade
+  preferred_maintenance_window = var.preferred_maintenance_window
 
   tags = var.tags
 
@@ -113,7 +114,6 @@ resource "aws_redshift_cluster" "this" {
       automated_snapshot_retention_period,
       availability_zone_relocation_enabled,
       cluster_type,
-      preferred_maintenance_window,
       allow_version_upgrade,
       number_of_nodes,
       final_snapshot_identifier,
