@@ -22,6 +22,10 @@
 
 Creates Amazon Redshift clusters or Redshift Serverless workgroups with VPC, encryption, parameter groups, and snapshot management.
 
+## Architecture
+
+![Architecture Diagram](./static/arch.png)
+
 ## What It Does
 
 - Redshift provisioned cluster or Serverless workgroup
